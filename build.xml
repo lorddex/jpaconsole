@@ -1,0 +1,54 @@
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="jpaconsole" default="run">
+
+	<target name="init" description="init variables">
+		<property name="src.dir" value="src/"/>
+		<property name="build.dir" value="build/"/>
+		<property name="lib.dir" value="lib/"/>
+		<property name="conf.dir" value="configs/"/>
+		<property name="ivy.dep.file" value="${conf.dir}/ivy.xml"/>
+		<property name="classes.build.dir" value="${build.dir}/classes"/>
+	</target>
+
+	<target name="prepare" depends="init" description="create files and folders">
+		<mkdir dir="${build.dir}"/>
+		<mkdir dir="${classes.build.dir}"/>
+	</target>
+
+	<target name="clean" depends="init" description="clean classes">
+		<delete includeemptydirs="true">
+			<fileset dir="${build.dir}"/>
+		</delete>
+	</target>
+
+	<target name="dep.clean" depends="init" description="clean libs">
+		<delete includeemptydirs="true" quiet="true">
+			<fileset dir="${lib.dir}"/>
+		</delete>
+	</target>
+
+	<target name="resolve" depends="init" description="retrieve dependencies with ivy">
+		<ivy:resolve file="${ivy.dep.file}"/>
+	</target>
+
+	<target name="retrieve" depends="resolve">
+		<ivy:retrieve pattern="lib/[conf]/[artifact]-[revision].[ext]" sync="true" conf="api,compile,test,runtime" />
+	</target>
+
+	<target name="compile" depends="retrieve,prepare" description="create class files">
+		<javac srcdir="${src.dir}" destdir="${classes.build.dir}" fork="true" source="1.7" target="1.7" includeantruntime="false">
+			
+		</javac>
+		<path id="build.class.path"> 
+			<!--<fileset dir="${classes.build.dir}"/>-->
+			<pathelement path="${classes.build.dir}"/>
+		</path>
+	</target>
+
+	<target name="run" depends="compile" description="run main class file">
+		<java classname="org.ldlabs.jpaconsole.JPAConsole" fork="true" failonerror="true" maxmemory="128m">
+			<!--<arg value="-h"/>-->
+        		<!--<classpath refid="build.class.path">
+			</classpath>-->
+		</java>
+	</target>
+</project>
